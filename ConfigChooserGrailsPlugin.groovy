@@ -16,7 +16,6 @@ class ConfigChooserGrailsPlugin {
 		"**/test/**"
 	]
 
-	// TODO Fill in these fields
 	def title = "Config Chooser Plugin" // Headline display name of the plugin
 	def author = "Wadeck Follonier"
 	def authorEmail = "wadeck.follonier@gmail.com"

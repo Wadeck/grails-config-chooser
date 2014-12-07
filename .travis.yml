@@ -5,6 +5,12 @@ branches:
  only:
  - master
 
+cache:
+ directories:
+ - $HOME/.grails/ivy-cache
+ - $HOME/.m2/repository
+
+
 before_script:
  - chmod +x grailsw
 
