@@ -24,7 +24,6 @@ class FilenameSanitizerTests extends GroovyTestCase{
 		assert 'titia2.txt' == FilenameSanitizer.sanitize('titi?2.txt', 'a')
 		assert 'titiR2.txt' == FilenameSanitizer.sanitize('titi?2.txt', 'R')
 		assert 'titi32.txt' == FilenameSanitizer.sanitize('titi?2.txt', '3')
-		assert 'tit-i32.txt' == FilenameSanitizer.sanitize('titi?2.txt', '3')
 	}
 
 	void testSpecialSubstitute(){
