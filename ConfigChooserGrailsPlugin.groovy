@@ -72,20 +72,19 @@ Allow the developper to choose the configuration on the fly by using a JDialog p
 
 	def onConfigChange = { event ->
 		// The event is the same as for 'onChange'.
-		println '[ConfigChooser] onConfigChange'
+//		println '[ConfigChooser] onConfigChange'
 
-		//TODO use a file to save last choice
 		// normally at this point we lost the user choice
 		ConfigChooserHelper.getInstance().execute(application)
 		ConfigChooserHelper.getInstance().destroy()
 	}
 
 	def onShutdown = { event ->
-		// TODO Implement code that is executed when the application shuts down (optional)
+		// Implement code that is executed when the application shuts down (optional)
 	}
 
 	def afterConfigMerge = { config, mergeCtx ->
 		/* Validate that the application has provided all the required settings. */
-		println '[ConfigChooser] afterConfigMerge'
+//		println '[ConfigChooser] afterConfigMerge'
 	}
 }

@@ -37,7 +37,7 @@ public class ChooseDataDummy implements IChooseData<ChoiceValueDummy> {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public ListCellRenderer getRenderer() {
+	public ListCellRenderer<ChoiceValueDummy> getRenderer() {
 		return new ChoiceValueCellRenderer();
 	}
 
