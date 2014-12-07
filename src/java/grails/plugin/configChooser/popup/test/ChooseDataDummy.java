@@ -2,7 +2,6 @@ package grails.plugin.configChooser.popup.test;
 
 import grails.plugin.configChooser.popup.ChoiceValueCellRenderer;
 import grails.plugin.configChooser.popup.IChooseData;
-import groovy.transform.CompileStatic;
 
 import javax.swing.*;
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.List;
 /**
  * @author Wadeck Follonier, wfollonier@proactive-partners.ch
  */
-@CompileStatic
 public class ChooseDataDummy implements IChooseData<ChoiceValueDummy> {
 
 	List<ChoiceValueDummy> values;
