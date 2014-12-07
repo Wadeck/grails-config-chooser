@@ -14,7 +14,7 @@ cache:
 
 before_script:
  - chmod +x grailsw
- - ls -l $HOME/.grails/wrapper
+ - ls -l $HOME
 
 script: ./grailsw refresh-dependencies
  && ./grailsw "test-app"
