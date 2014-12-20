@@ -36,12 +36,13 @@ grails.project.dependency.resolution = {
 		mavenCentral()
 		// uncomment the below to enable remote dependency resolution
 		// from public Maven repositories
-		//mavenRepo "http://repository.codehaus.org"
-		//mavenRepo "http://download.java.net/maven/2/"
-		//mavenRepo "http://repository.jboss.com/maven2/"
+//		mavenRepo "http://repository.codehaus.org"
+//		mavenRepo "http://download.java.net/maven/2/"
+//		mavenRepo "http://repository.jboss.com/maven2/"
 
-		// for bintray upload plugin
-		mavenRepo "http://dl.bintray.com/upennlib/maven/"
+//		mavenRepo('http://search.maven.org/')
+//		mavenRepo('http://central.sonatype.org/')
+//		mavenRepo('http://mvnrepository.com/')
 	}
 	dependencies {
 		// specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
@@ -61,11 +62,12 @@ grails.project.dependency.resolution = {
 	}
 }
 
-grails.project.repos.default = "bintray"
+grails.project.repos.default = "artifactory"
 
-//grails.project.repos.bintray.url = "https://api.bintray.com/maven/wadeck-company/maven/grails-plugin-config-chooser"
-//grails.project.repos.bintray.username = "wadeck-upload"
-//grails.project.repos.bintray.password = "wadeck-upload"
-//grails.project.repos.bintray.url = "https://api.bintray.com/maven/wadeck-upload/maven/test"
-//grails.project.repos.bintray.username = "wadeck-upload"
-//grails.project.repos.bintray.password = "wadeck-upload"
+//grails.project.repos.github.url = "https://raw.github.com/Wadeck/grails-config-chooser/mvn-repo/"
+grails.project.repos.artifactory.url = "http://artifactory-wadeck.rhcloud.com/artifactory/plugins-release-local"
+//grails.project.repos.nexus.url = "https://oss.sonatype.org/content/repositories/snapshots"
+grails.project.repos.artifactory.type = "maven"
+// creditentials are stored in separate file, %HOME%/.grails/settings.groovy
+// grails.project.repos.artifactory.username = "not-public"
+// grails.project.repos.artifactory.password = "not-public"

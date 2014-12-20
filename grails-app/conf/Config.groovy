@@ -7,7 +7,6 @@ import org.apache.log4j.RollingFileAppender
 // config files can be ConfigSlurper scripts, Java properties files, or classes
 // in the classpath in ConfigSlurper format
 
-println 'Config.groovy locations'
 grails.config.locations = ["file:C:/defaultGrailsProject/${appName}/${appName}-config.groovy"]
 
 // in order to test easily the plugin
