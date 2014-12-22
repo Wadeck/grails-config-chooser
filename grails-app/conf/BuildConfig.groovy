@@ -29,6 +29,7 @@ grails.project.dependency.resolution = {
 		// uncomment to disable ehcache
 		// excludes 'ehcache'
 	}
+
 	log "warn" // log level of Ivy resolver, either 'error', 'warn', 'info', 'debug' or 'verbose'
 	repositories {
 		grailsCentral()
@@ -39,11 +40,8 @@ grails.project.dependency.resolution = {
 //		mavenRepo "http://repository.codehaus.org"
 //		mavenRepo "http://download.java.net/maven/2/"
 //		mavenRepo "http://repository.jboss.com/maven2/"
-
-//		mavenRepo('http://search.maven.org/')
-//		mavenRepo('http://central.sonatype.org/')
-//		mavenRepo('http://mvnrepository.com/')
 	}
+
 	dependencies {
 		// specify dependencies here under either 'build', 'compile', 'runtime', 'test' or 'provided' scopes eg.
 		// runtime 'mysql:mysql-connector-java:5.1.27'
@@ -64,10 +62,9 @@ grails.project.dependency.resolution = {
 
 grails.project.repos.default = "artifactory"
 
-//grails.project.repos.github.url = "https://raw.github.com/Wadeck/grails-config-chooser/mvn-repo/"
 grails.project.repos.artifactory.url = "http://artifactory-wadeck.rhcloud.com/artifactory/plugins-release-local"
-//grails.project.repos.nexus.url = "https://oss.sonatype.org/content/repositories/snapshots"
 grails.project.repos.artifactory.type = "maven"
 // creditentials are stored in separate file, %HOME%/.grails/settings.groovy
+// due to a bug, those lines must not be uncommented, they are just for information
 // grails.project.repos.artifactory.username = "not-public"
 // grails.project.repos.artifactory.password = "not-public"

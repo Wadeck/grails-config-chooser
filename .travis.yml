@@ -1,16 +1,10 @@
+# in order to be used correctly, the command 'wrapper' must be run
 language: groovy
 jdk:
  - oraclejdk7
 branches:
  only:
  - master
-
-cache:
- directories:
- - $HOME/.grails/ivy-cache
- - $HOME/.grails/wrapper
- - $HOME/.m2/repository
-
 
 before_script:
  - chmod +x grailsw

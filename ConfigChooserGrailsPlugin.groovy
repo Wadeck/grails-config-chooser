@@ -2,7 +2,7 @@ import grails.plugin.configChooser.helper.ConfigChooserHelper
 
 class ConfigChooserGrailsPlugin {
 	// the plugin version
-	def version = "0.5"
+	def version = "0.5.1"
 	// the version or versions of Grails the plugin is designed for
 	def grailsVersion = "2.0 > *"
 
@@ -18,7 +18,8 @@ class ConfigChooserGrailsPlugin {
 		"**/test/**"
 	]
 
-	def title = "Config Chooser Plugin" // Headline display name of the plugin
+	// Headline display name of the plugin
+	def title = "Config Chooser Plugin"
 	def author = "Wadeck Follonier"
 	def authorEmail = "wadeck.follonier@gmail.com"
 	def description = '''\

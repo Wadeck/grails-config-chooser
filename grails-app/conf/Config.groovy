@@ -1,33 +1,19 @@
 import grails.util.Environment
+import org.apache.commons.io.FilenameUtils
 import org.apache.log4j.DailyRollingFileAppender
 import org.apache.log4j.Layout
 import org.apache.log4j.Logger
 import org.apache.log4j.RollingFileAppender
+
 // locations to search for config files that get merged into the main config;
 // config files can be ConfigSlurper scripts, Java properties files, or classes
 // in the classpath in ConfigSlurper format
 
-grails.config.locations = ["file:C:/defaultGrailsProject/${appName}/${appName}-config.groovy"]
-
-// in order to test easily the plugin
-grails.config.locations << ConfigChooserDefaultConfig
-//grails.config.locations << 'file:grails-app/config/ConfigChooserDefaultConfig.groovy'
-
-//println "From the defaultConfig : grailsApplication.mergedConfig.grails.plugin.configChooser.mode=${grailsApplication.mergedConfig.grails.plugin.configChooser.mode}"
-//println "before config.saveFlag = ${config.saveFlag}, config.saveValue = ${config.saveValue}"
-//if(!config.saveFlag){
-//	config.saveFlag = true
-//	boolean ok = JOptionPane.showConfirmDialog(null, 'Titre', 'Message', JOptionPane.YES_NO_OPTION) == 0
-//	config.saveValue = ok
-//	if(ok){
-//		println 'ok'
-//	}else{
-//		println 'not ok'
-//	}
-//}
-//println "after config.saveFlag = ${config.saveFlag}, config.saveValue = ${config.saveValue}"
+//TODO use a helper to add existing file
+grails.config.locations = ["file:C:/defaultGrailsProject/${ appName }/${ appName }-config.groovy"]
 
 // required for log4j configuration without warning
+//TODO must be normalized (for a directory usage)
 def applicationName = appName
 
 // log4j configuration
@@ -41,7 +27,29 @@ log4j = {
 
 		console name: 'stdout', layout: logLayout
 
-		String logDirectory = config.log.directory ?: "C:/defaultGrailsProject/${ applicationName }"
+		//TODO use an helper for such pattern
+		// in order of priority : log / property / systemEnv / default
+		String logDirectory = config.log.directory ?: ''
+		if (!logDirectory) {
+			logDirectory = System.getProperty('grailsProjectPath')
+			if (!logDirectory) {
+				Map<String, String> envVars = System.getenv()
+				logDirectory = envVars.get('grailsProjectPath')
+				if (logDirectory) {
+					logDirectory = FilenameUtils.concat(logDirectory, applicationName)
+				}
+				if (!logDirectory) {
+					String defaultOsPath
+					if (System.getProperty("os.name").toLowerCase().contains('windows')) {
+						defaultOsPath = 'C:\\defaultGrailsProject'
+					} else {
+						defaultOsPath = '/etc/defaultGrailsProject'
+					}
+					logDirectory = FilenameUtils.concat(defaultOsPath, applicationName)
+				}
+			}
+		}
+
 		String logFilename = config.log.filename ?: applicationName
 
 		appender new DailyRollingFileAppender(name: 'logfile', file: logDirectory + File.separator + logFilename + ".log", datePattern: "'.'yyyy-MM-dd", layout: logLayout)
@@ -99,5 +107,3 @@ environments {
 		logger.removeAppender('stdout')
 	}
 }
-
-//grails.project.repos.bintray.portal = "grailsCentral"
