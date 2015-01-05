@@ -1,0 +1,6 @@
+*.log
+/grails-config-chooser-*.zip
+/grails-config-chooser-*.zip.sha1
+/plugin.xml
+/target
+/web-app/WEB-INF
