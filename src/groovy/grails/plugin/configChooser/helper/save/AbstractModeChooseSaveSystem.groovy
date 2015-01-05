@@ -5,54 +5,49 @@ import grails.plugin.configChooser.helper.IModeChooseSaveSystem
 import grails.plugin.configChooser.popup.IConfigChooserValue
 import grails.util.Environment
 import grails.util.GrailsUtil
-import grails.util.Holders
 import grails.util.Metadata
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
-import groovy.util.logging.Log4j
+import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
+
+import org.codehaus.groovy.grails.commons.GrailsApplication
 
 /**
  * @author Wadeck Follonier, wfollonier@proactive-partners.ch
  */
-@Log4j
+@Slf4j
 @CompileStatic
 abstract class AbstractModeChooseSaveSystem implements IModeChooseSaveSystem {
-	protected String envName
-	protected String appName
-	protected String version
+	protected String envName = Environment.current.name
+	protected String appName = Metadata.current.getApplicationName()
+	protected String version = Metadata.current.getApplicationVersion()
+	protected GrailsApplication grailsApplication
 
 	private File cachedFile
 
-	@Override
-	void init() {
-		this.envName = Environment.getCurrentEnvironment().name
-
-		Metadata meta = Holders.grailsApplication.metadata
-		this.appName = meta.get(Metadata.APPLICATION_NAME)
-		this.version = meta.get(Metadata.APPLICATION_VERSION)
+	void init(GrailsApplication application) {
+		grailsApplication = application
 	}
 
 	/**
 	 * The directory that will contains all the save files
 	 */
-	public abstract String computeSaveDirectory()
+	abstract String computeSaveDirectory()
 
 	/**
 	 * The save file given the current application configuration
 	 */
-	public abstract String computeSaveFileName()
+	abstract String computeSaveFileName()
 
 	@CompileStatic(TypeCheckingMode.SKIP)
-	public String loadLastChoice() {
-		File file = this.getFile()
+	String loadLastChoice() {
 		if (!file.exists()) {
 			return null
 		}
 
 		try {
-			XmlSlurper slurper = new XmlSlurper()
-			def root = slurper.parse(file)
+			def root = new XmlSlurper().parse(file)
 
 			String lastFileChosen = root.filename.text()
 
@@ -65,12 +60,10 @@ abstract class AbstractModeChooseSaveSystem implements IModeChooseSaveSystem {
 	}
 
 	@CompileStatic(TypeCheckingMode.SKIP)
-	public void saveChoice(IConfigChooserValue value) {
-		File file = this.getFile()
-
+	void saveChoice(IConfigChooserValue value) {
 		file.withWriter('UTF-8') { Writer writer ->
 			def xml = new MarkupBuilder(writer)
-			xml.setDoubleQuotes(true)
+			xml.doubleQuotes = true
 			xml.root(appName: appName, appVersion: version, envName: envName) {
 				filename(value.computeStringRepresentation())
 			}
@@ -80,28 +73,28 @@ abstract class AbstractModeChooseSaveSystem implements IModeChooseSaveSystem {
 	// warning this method cannot be private due to issue with CompileStatic and hierarchy call
 	protected File getFile() {
 		if (!cachedFile) {
-			this.cachedFile = this.retrieveFile()
+			cachedFile = retrieveFile()
 			log.debug "The cached file is [${ cachedFile.canonicalPath }]"
 		}
 
-		return this.cachedFile
+		return cachedFile
 	}
 
 	private File retrieveFile() {
-		String filename = this.computeSaveFileName()
+		String filename = computeSaveFileName()
 		String sanitizedFilename = FilenameSanitizer.sanitize(filename)
 		if (!sanitizedFilename) {
 			throw new IllegalArgumentException("The file name is not valid [${ filename }]")
 		}
 
-		String directoryName = this.computeSaveDirectory()
+		String directoryName = computeSaveDirectory()
 		String sanitizedDirectoryName = FilenameSanitizer.sanitize(directoryName)
 		if (!sanitizedDirectoryName) {
 			throw new IllegalArgumentException("The directory name is not valid [${ directoryName }]")
 		}
 
 		File file = new File(directoryName, sanitizedFilename)
-		File parent = file.getParentFile()
+		File parent = file.parentFile
 		if (!parent.exists()) {
 			parent.mkdirs()
 			if (!parent.exists()) {

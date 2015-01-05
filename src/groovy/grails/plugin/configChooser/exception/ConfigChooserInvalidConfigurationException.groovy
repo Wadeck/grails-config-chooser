@@ -7,8 +7,8 @@ import groovy.transform.CompileStatic
  * @author Wadeck Follonier, wfollonier@proactive-partners.ch
  */
 @CompileStatic
-class ConfigChooserInvalidConfigurationException extends Exception{
-	public ConfigChooserInvalidConfigurationException(String message) {
+class ConfigChooserInvalidConfigurationException extends RuntimeException {
+	ConfigChooserInvalidConfigurationException(String message) {
 		super(message)
 	}
 }

@@ -1,6 +1,7 @@
 package grails.plugin.configChooser.popup;
 
-import javax.swing.*;
+import javax.swing.ComboBoxModel;
+import javax.swing.ListCellRenderer;
 
 /**
  * @author Wadeck Follonier, wfollonier@proactive-partners.ch
@@ -11,7 +12,7 @@ public interface IChooseData<T extends IChoiceValue> {
 	ListCellRenderer<T> getRenderer();
 
 	/**
-	 * Used to retrieve the selected item at the end of the dialog
+	 * Retrieves the selected item at the end of the dialog.
 	 */
 	T getSelectedItem();
 }

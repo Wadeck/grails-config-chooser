@@ -6,15 +6,14 @@ import grails.plugin.configChooser.popup.IChoiceValue;
  * @author Wadeck Follonier, wfollonier@proactive-partners.ch
  */
 public class ChoiceValueDummy implements IChoiceValue {
-	private String name;
-	private String content;
+	private final String name;
+	private final String content;
 
 	public ChoiceValueDummy(String name, String content){
 		this.name = name;
 		this.content = content;
 	}
 
-	@Override
 	public String computeStringRepresentation() {
 		return name;
 	}

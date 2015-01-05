@@ -1,4 +1,5 @@
 package grails.plugin.configChooser.helper
+
 import groovy.transform.CompileStatic
 
 /**
@@ -13,7 +14,7 @@ class FilenameSanitizer {
 	 * @param substitute Can be null / '', or any valid character
 	 * @return
 	 */
-	public static String sanitize(String filename, String substitute = '_'){
+	static String sanitize(String filename, String substitute = '_') {
 		def pattern = /[^a-zA-Z0-9\\._]+/
 
 		if(!substitute){
@@ -25,7 +26,6 @@ class FilenameSanitizer {
 			throw new IllegalArgumentException('The substitute must be a valid string')
 		}
 
-		String sanitizedFilename = filename?.replaceAll(pattern, substitute)
-		return sanitizedFilename
+		return filename?.replaceAll(pattern, substitute)
 	}
 }
