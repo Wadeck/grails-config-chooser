@@ -2,7 +2,9 @@ package grails.plugin.configChooser.popup
 
 import groovy.transform.CompileStatic
 
-import javax.swing.*
+import javax.swing.AbstractListModel
+import javax.swing.ComboBoxModel
+import javax.swing.ListCellRenderer
 
 /**
  * The data model for the combobox and the textpane of the popup
@@ -14,94 +16,74 @@ class ChooseData implements IChooseData<IConfigChooserValue> {
 	 * Contain the file names and their respective content
 	 * Serve as cache
 	 */
-	private Map<IConfigChooserValue, String> valuesToContent
+	private Map<IConfigChooserValue, String> valuesToContent = [:]
 	/**
 	 * Cache the string representation of the different value
 	 */
-	private Map<IConfigChooserValue, String> valuesToRepresentation
+	private Map<IConfigChooserValue, String> valuesToRepresentation = [:]
 	/**
 	 * Share the selectedOption with the comboModel and the fileContent
 	 */
-	private IConfigChooserValue selectedValue
+	IConfigChooserValue selectedValue
 
 	ChooseData(Collection<IConfigChooserValue> values) {
-		this.init(values)
-		this.selectedValue = values[0]
-	}
-
-	public setSelectedValue(IConfigChooserValue selectedValue) {
-		this.selectedValue = selectedValue
+		this.values = values
+		init()
+		selectedValue = this.values[0]
 	}
 
 	/**
 	 * We precompute the string representation but not the content
 	 * because it could be more costly
 	 */
-	private void init(Collection<IConfigChooserValue> values) {
-		this.values = values
-		this.valuesToRepresentation = [:]
-		this.valuesToContent = [:]
+	private void init() {
 
-		values.each { IConfigChooserValue value ->
-			valuesToRepresentation.put(value, value.computeStringRepresentation())
-		}
+		values.each { IConfigChooserValue value -> valuesToRepresentation[value] = value.computeStringRepresentation() }
 
 		// sort using the label that will be displayed in the combobox
-		values.sort { IConfigChooserValue value ->
-			valuesToRepresentation[value]
-		}
+		values.sort { IConfigChooserValue value -> valuesToRepresentation[value] }
 	}
 
-	public String getCurrentFileContent() {
+	String getCurrentFileContent() {
 		if (!valuesToContent.containsKey(selectedValue)) {
 			ConfigObject config = selectedValue.retrieveConfigMap()
 
 			//TODO add content transformer
-			String content = config.collect { String key, value ->
-				"$key = $value"
-			}.join('\n')
+			String content = config.collect { key, value -> "$key = $value" }.join('\n')
 
 			// cache the content
-			valuesToContent.put(selectedValue, content)
+			valuesToContent[selectedValue] = content
 		}
 
 		return valuesToContent[selectedValue]
 	}
 
-	public ComboBoxModel<IConfigChooserValue> getListModel() {
-		ChooseComboBoxModel result = new ChooseComboBoxModel()
-		return result;
+	ComboBoxModel<IConfigChooserValue> getListModel() {
+		return new ChooseComboBoxModel()
 	}
 
-	@Override
-	ListCellRenderer getRenderer() {
+	ListCellRenderer<?> getRenderer() {
 		return new ChoiceValueCellRenderer()
 	}
 
-	@Override
 	IConfigChooserValue getSelectedItem() {
 		return selectedValue
 	}
 
 	private class ChooseComboBoxModel extends AbstractListModel<IConfigChooserValue> implements ComboBoxModel<IConfigChooserValue> {
-		@Override
-		public IConfigChooserValue getElementAt(int index) {
-			IConfigChooserValue value = values[index]
-			return value
+		IConfigChooserValue getElementAt(int index) {
+			return values[index]
 		}
 
-		@Override
-		public int getSize() {
+		int getSize() {
 			return values.size()
 		}
 
-		@Override
-		public Object getSelectedItem() {
+		def getSelectedItem() {
 			return selectedValue
 		}
 
-		@Override
-		public void setSelectedItem(Object item) {
+		void setSelectedItem(Object item) {
 			selectedValue = (IConfigChooserValue) item
 		}
 	}

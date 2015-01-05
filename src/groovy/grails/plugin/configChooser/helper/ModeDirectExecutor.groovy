@@ -6,6 +6,8 @@ import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Log4j
 
+import org.codehaus.groovy.grails.commons.GrailsApplication
+
 /**
  * @author Wadeck Follonier, wfollonier@proactive-partners.ch
  */
@@ -14,27 +16,24 @@ import groovy.util.logging.Log4j
 class ModeDirectExecutor implements IConfigChooserExecutor {
 	ConfigObject mergedConfig
 
-	@Override
-	ConfigObject chooseConfig() {
-		File directFile = this.retrieveDirectFile(mergedConfig)
+	ConfigObject chooseConfig(GrailsApplication application) {
+		File directFile = retrieveDirectFile(mergedConfig)
 
 		log.info "Loading directly the file ${ directFile.canonicalPath }"
 
-		ConfigSlurper slurper = new ConfigSlurper(Environment.currentEnvironment.name)
-		ConfigObject config = slurper.parse(directFile.toURI().toURL())
-
-		ConfigObject result = config
-		return result
+		return new ConfigSlurper(Environment.current.name).parse(directFile.toURI().toURL())
 	}
 
 	private File retrieveDirectFile(ConfigObject config) {
-		String filename = this.retrieveDirectFilename(config)
+		String filename = retrieveDirectFilename(config)
 
 		File file = new File(filename)
 		if (!file.exists()) {
 			log.error "The path defined by 'grails.plugin.configChooser.directFile' does not exist"
 			throw new ConfigChooserInvalidConfigurationException("The key 'grails.plugin.configChooser.directFile' must be a path to an existing file")
-		} else if (file.isDirectory()) {
+		}
+
+		if (file.isDirectory()) {
 			log.error "The path defined by 'grails.plugin.configChooser.directFile' leads to a directory, a file is required"
 			throw new ConfigChooserInvalidConfigurationException("The key 'grails.plugin.configChooser.directFile' must be a path to a file and not a directory")
 		}
@@ -46,21 +45,18 @@ class ModeDirectExecutor implements IConfigChooserExecutor {
 	 * Retrieve the config key 'grails.plugin.configChooser.directFile'
 	 */
 	private String retrieveDirectFilename(ConfigObject config) {
-		def configDirectFile = this.getConfigDirectFile(config)
+		def configDirectFile = getConfigDirectFile(config)
 
-		String directoryName = null
 		if (configDirectFile instanceof String) {
-			directoryName = configDirectFile
-		} else {
-			log.error "The mandatory config value assigned to 'grails.plugin.configChooser.directFile' is not recognized, value = ${ configDirectFile }"
-			throw new ConfigChooserInvalidConfigurationException("The key 'grails.plugin.configChooser.directory' is not correctly set, a path to a file containing the configuration is required")
+			return configDirectFile
 		}
 
-		return directoryName
+		log.error "The mandatory config value assigned to 'grails.plugin.configChooser.directFile' is not recognized, value = ${ configDirectFile }"
+		throw new ConfigChooserInvalidConfigurationException("The key 'grails.plugin.configChooser.directory' is not correctly set, a path to a file containing the configuration is required")
 	}
 
 	@CompileStatic(TypeCheckingMode.SKIP)
-	private def getConfigDirectFile(ConfigObject config) {
+	private getConfigDirectFile(ConfigObject config) {
 		return config.grails.plugin.configChooser.directFile
 	}
 }

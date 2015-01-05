@@ -1,18 +1,22 @@
 package grails.plugin.configChooser.helper.save
 
-import grails.util.Holders
+import groovy.transform.CompileStatic
+import groovy.transform.TypeCheckingMode
+import groovy.util.logging.Slf4j
 
 /**
  * @author Wadeck Follonier, wfollonier@proactive-partners.ch
  */
+@CompileStatic
+@Slf4j
 class NameWithPlaceholderSaveSystem extends AbstractModeChooseSaveSystem {
-	@Override
+
 	String computeSaveFileName() {
-		def saveFilenameConfig = Holders.grailsApplication.mergedConfig.grails.plugin.configChooser.saveFilename
+		def saveFilenameConfig = configChooserConfig.saveFilename
 
 		String filename
 		if (saveFilenameConfig instanceof String) {
-			filename = (String) saveFilenameConfig
+			filename = saveFilenameConfig
 		} else {
 			if (saveFilenameConfig) {
 				// config provided but not readable
@@ -22,29 +26,29 @@ class NameWithPlaceholderSaveSystem extends AbstractModeChooseSaveSystem {
 			filename = "#appName-#version.xml"
 		}
 
-		filename = filename.replaceAll(/#appName/, appName)
+		return filename
+			.replaceAll(/#appName/, appName)
 			.replaceAll(/#version/, version)
 			.replaceAll(/#envName/, envName)
-
-		return filename
 	}
 
-	@Override
 	String computeSaveDirectory() {
-		def directoryNameConfig = Holders.grailsApplication.mergedConfig.grails.plugin.configChooser.saveDirectory
+		def directoryNameConfig = configChooserConfig.saveDirectory
 
-		String directoryName
 		if (directoryNameConfig instanceof String) {
-			directoryName = (String) directoryNameConfig
-		} else {
-			if (directoryNameConfig) {
-				// config provided but not readable
-				log.warn "The configuration value for key='grails.plugin.configChooser.saveDirectory' was not recognized [${ directoryNameConfig }]"
-			}
-
-			directoryName = '.'
+			return directoryNameConfig
 		}
 
-		return directoryName
+		if (directoryNameConfig) {
+			// config provided but not readable
+			log.warn "The configuration value for key='grails.plugin.configChooser.saveDirectory' was not recognized [${ directoryNameConfig }]"
+		}
+
+		return '.'
+	}
+
+	@CompileStatic(TypeCheckingMode.SKIP)
+	private ConfigObject getConfigChooserConfig() {
+		grailsApplication.mergedConfig.grails.plugin.configChooser
 	}
 }

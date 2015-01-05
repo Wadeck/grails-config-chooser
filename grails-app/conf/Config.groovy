@@ -1,5 +1,5 @@
 import grails.util.Environment
-import org.apache.commons.io.FilenameUtils
+
 import org.apache.log4j.DailyRollingFileAppender
 import org.apache.log4j.Layout
 import org.apache.log4j.Logger
@@ -33,33 +33,32 @@ log4j = {
 		if (!logDirectory) {
 			logDirectory = System.getProperty('grailsProjectPath')
 			if (!logDirectory) {
-				Map<String, String> envVars = System.getenv()
-				logDirectory = envVars.get('grailsProjectPath')
+				logDirectory = System.getenv('grailsProjectPath')
 				if (logDirectory) {
-					logDirectory = FilenameUtils.concat(logDirectory, applicationName)
+					logDirectory += '/' + applicationName
 				}
-				if (!logDirectory) {
+				else {
 					String defaultOsPath
 					if (System.getProperty("os.name").toLowerCase().contains('windows')) {
-						defaultOsPath = 'C:\\defaultGrailsProject'
+						defaultOsPath = 'C:/defaultGrailsProject'
 					} else {
 						defaultOsPath = '/etc/defaultGrailsProject'
 					}
-					logDirectory = FilenameUtils.concat(defaultOsPath, applicationName)
+					logDirectory = defaultOsPath + '/' + applicationName
 				}
 			}
 		}
 
 		String logFilename = config.log.filename ?: applicationName
 
-		appender new DailyRollingFileAppender(name: 'logfile', file: logDirectory + File.separator + logFilename + ".log", datePattern: "'.'yyyy-MM-dd", layout: logLayout)
-		appender new RollingFileAppender(name: 'stacktrace', file: logDirectory + File.separator + "_stacktrace.log", layout: logLayout)
+		appender new DailyRollingFileAppender(name: 'logfile', file: new File(logDirectory, logFilename + ".log"), datePattern: "'.'yyyy-MM-dd", layout: logLayout)
+		appender new RollingFileAppender(name: 'stacktrace', file: new File(logDirectory, "_stacktrace.log"), layout: logLayout)
 	}
 
 	root {
-		if (Environment.getCurrentEnvironment() in [Environment.DEVELOPMENT]) {
+		if (Environment.developmentMode) {
 			info('stdout', 'logfile')
-		} else if (Environment.getCurrentEnvironment() in [Environment.TEST]) {
+		} else if (Environment.current == Environment.TEST) {
 			warn('logfile')
 		} else {
 			error('logfile')
@@ -67,34 +66,23 @@ log4j = {
 		additivity = false
 	}
 
-	error 'org.codehaus.groovy.grails.web.servlet',  //  controllers
-		'org.codehaus.groovy.grails.web.pages', //  GSP
-		'org.codehaus.groovy.grails.web.sitemesh', //  layouts
-		'org.codehaus.groovy.grails.web.mapping.filter', // URL mapping
-		'org.codehaus.groovy.grails.web.mapping', // URL mapping
-		'org.codehaus.groovy.grails.commons', // core / classloading
-		'org.codehaus.groovy.grails.plugins', // plugins
-		'org.codehaus.groovy.grails.orm.hibernate', // hibernate integration
-		'org.springframework',
-		'org.hibernate',
-		'net.sf.ehcache.hibernate',
-		'net.sf.jmimemagic'
+	error 'org.codehaus.groovy.grails',
+	      'org.springframework',
+	      'org.hibernate',
+	      'net.sf.ehcache.hibernate',
+	      'net.sf.jmimemagic'
 
-	if (Environment.getCurrentEnvironment() in [Environment.DEVELOPMENT, Environment.TEST]) {
+	if (Environment.current in [Environment.DEVELOPMENT, Environment.TEST]) {
 		debug 'grails.app'
-
-		warn 'org.mortbay.log',
-			'org.apache.ddlutils'
-
+		warn 'org.apache.ddlutils'
 	} else {
-		warn 'org.mortbay.log',
-			'org.apache.ddlutils',
-			'grails.app'
+		warn 'org.apache.ddlutils', 'grails.app'
 	}
 
-	if (Environment.getCurrentEnvironment() == Environment.DEVELOPMENT) {
+	if (Environment.developmentMode) {
 		// debug sql queries
-		// trace 'org.hibernate.SQL' //, 'org.hibernate.type'
+		// debug 'org.hibernate.SQL'
+		// trace 'org.hibernate.type.descriptor.sql.BasicBinder'
 
 		// debug all security concerns
 		// debug 'org.springframework.security'
@@ -102,8 +90,7 @@ log4j = {
 }
 
 environments {
-	def logger = Logger.getRootLogger()
 	production {
-		logger.removeAppender('stdout')
+		Logger.rootLogger.removeAppender('stdout')
 	}
 }

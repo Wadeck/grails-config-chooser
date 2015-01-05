@@ -1,4 +1,5 @@
 package grails.plugin.configChooser.helper
+
 import grails.plugin.configChooser.exception.ConfigChooserInvalidConfigurationException
 import grails.plugin.configChooser.helper.save.NameWithPlaceholderSaveSystem
 import grails.plugin.configChooser.popup.ChooseData
@@ -11,26 +12,30 @@ import groovy.transform.TypeCheckingMode
 import groovy.util.logging.Log4j
 
 import java.util.regex.Pattern
+
+import org.codehaus.groovy.grails.commons.GrailsApplication
+
 /**
  * @author Wadeck Follonier, wfollonier@proactive-partners.ch
  */
 @Log4j
 @CompileStatic
 class ModeChooseExecutor implements IConfigChooserExecutor {
+
+	private static final int DEFAULT_TIME = 5
+
 	ConfigObject mergedConfig
 
-	@Override
-	ConfigObject chooseConfig() {
-		List<File> configFileList = this.retrievePluginConfigurationForChoose(mergedConfig)
+	ConfigObject chooseConfig(GrailsApplication application) {
+		List<File> configFileList = retrievePluginConfigurationForChoose(mergedConfig)
 
 		IModeChooseSaveSystem saveSystem = new NameWithPlaceholderSaveSystem()
-
-		saveSystem.init()
+		saveSystem.init(application)
 
 		String lastChoice = saveSystem.loadLastChoice()
 
 		// blocking call, until the user replies
-		IConfigChooserValue choice = this.displayChoicePopup(configFileList, lastChoice)
+		IConfigChooserValue choice = displayChoicePopup(configFileList, lastChoice)
 		if (!choice) {
 			log.debug "No choice made, the user cancelled the choice, application must exit"
 			// the mode was "choose" so without a choose, we must exit
@@ -39,44 +44,45 @@ class ModeChooseExecutor implements IConfigChooserExecutor {
 
 		saveSystem.saveChoice(choice)
 
-		ConfigObject result = choice.retrieveConfigMap()
-		return result
+		return choice.retrieveConfigMap()
 	}
 
 	private List<File> retrievePluginConfigurationForChoose(ConfigObject config) {
-		File directoryFile = this.retrieveDirectoryFile(config)
+		File directoryFile = retrieveDirectoryFile(config)
 
 		// priority : list > regex
-		List<String> filenames = this.retrieveFilenames(config)
+		List<String> filenames = retrieveFilenames(config)
 
-		List<File> configFileList = []
+		List<File> configFileList
 		if (filenames) {
-			configFileList = this.retrieveFileListUsingFilenames(directoryFile, filenames)
+			configFileList = retrieveFileListUsingFilenames(directoryFile, filenames)
 		} else {
-			Pattern pattern = this.retrievePattern(config)
+			Pattern pattern = retrievePattern(config)
 
 			if (!pattern) {
 				log.error "Neither 'grails.plugin.configChooser.regex' nor 'grails.plugin.configChooser.regex' are given, at least one of them is mandatory in order to use the configChooser plugin"
 				throw new ConfigChooserInvalidConfigurationException("Neither the key 'grails.plugin.configChooser.list' nor 'grails.plugin.configChooser.regex' is not filled but one is required")
 			}
 
-			configFileList = this.retrieveFileListUsingPattern(directoryFile, pattern)
+			configFileList = retrieveFileListUsingPattern(directoryFile, pattern)
 		}
 
-		log.debug "ConfigFiles found : [${ configFileList.join(', ') }]"
+		log.debug "ConfigFiles found : [$configFileList]"
 
 		return configFileList
 	}
 
 	private File retrieveDirectoryFile(ConfigObject config) {
-		String directoryName = this.retrieveDirectoryName(config)
+		String directoryName = retrieveDirectoryName(config)
 
 		File directoryFile = new File(directoryName)
 
 		if (!directoryFile.exists()) {
 			log.error "The path found using 'grails.plugin.configChooser.directory' does not exist, value = $directoryName. It's is required to use configChooser"
 			throw new ConfigChooserInvalidConfigurationException("The key 'grails.plugin.configChooser.directory' is not correctly set, the folder defined by the path does not exist (or the application does not have the right to read it)")
-		} else if (!directoryFile.isDirectory()) {
+		}
+
+		if (!directoryFile.isDirectory()) {
 			log.error "The path found using 'grails.plugin.configChooser.directory' is not a directory, value = $directoryName. It's is required to use configChooser"
 			throw new ConfigChooserInvalidConfigurationException("The key 'grails.plugin.configChooser.directory' is not correctly set, the path defines a file and not a folder")
 		}
@@ -88,51 +94,47 @@ class ModeChooseExecutor implements IConfigChooserExecutor {
 	 * Retrieve the config key 'grails.plugin.configChooser.directory'
 	 */
 	private String retrieveDirectoryName(ConfigObject config) {
-		def configDirectory = this.getConfigDirectory(config)
+		def configDirectory = getConfigDirectory(config)
 
-		String directoryName = null
+		String directoryName
 		if (configDirectory instanceof String) {
-			directoryName = configDirectory
-		} else {
-			log.error "The mandatory config value assigned to 'grails.plugin.configChooser.directory' is not recognized, value = ${ configDirectory }"
-			throw new ConfigChooserInvalidConfigurationException("The key 'grails.plugin.configChooser.directory' is not correctly set, a path to the directory containing the different configuration files is required")
+			return configDirectory
 		}
 
-		return directoryName
+		log.error "The mandatory config value assigned to 'grails.plugin.configChooser.directory' is not recognized, value = ${ configDirectory }"
+		throw new ConfigChooserInvalidConfigurationException("The key 'grails.plugin.configChooser.directory' is not correctly set, a path to the directory containing the different configuration files is required")
 	}
 
 	private List<String> retrieveFilenames(ConfigObject config) {
-		def configList = this.getConfigList(config)
+		def configList = getConfigList(config)
 
-		List<String> filenames = null
 		if (configList instanceof String) {
-			filenames = ((String) configList).tokenize('|')
-		} else if (configList instanceof List) {
-			filenames = (List<String>) configList
-		} else {
-			if (configList) {
-				log.warn "The optional config value assigned to 'grails.plugin.configChooser.list' is not recognized, value = ${ configList }"
-			}
+			return configList.tokenize('|')
 		}
 
-		return filenames
+		if (configList instanceof List) {
+			return (List<String>) configList
+		}
+
+		if (configList) {
+			log.warn "The optional config value assigned to 'grails.plugin.configChooser.list' is not recognized, value = ${ configList }"
+		}
 	}
 
 	private Pattern retrievePattern(ConfigObject config) {
-		def configRegex = this.getConfigRegex(config)
+		def configRegex = getConfigRegex(config)
 
-		Pattern pattern = null
 		if (configRegex instanceof Pattern) {
-			pattern = (Pattern) configRegex
-		} else if (configRegex instanceof String) {
-			pattern = Pattern.compile((String) configRegex)
-		} else {
-			if (configRegex) {
-				log.warn "The optional config value assigned to 'grails.plugin.configChooser.regex' is not recognized, value = ${ configRegex }"
-			}
+			return (Pattern) configRegex
 		}
 
-		return pattern
+		if (configRegex instanceof String) {
+			return Pattern.compile(configRegex)
+		}
+
+		if (configRegex) {
+			log.warn "The optional config value assigned to 'grails.plugin.configChooser.regex' is not recognized, value = ${ configRegex }"
+		}
 	}
 
 	private List<File> retrieveFileListUsingFilenames(File directoryFile, List<String> filenames) {
@@ -170,46 +172,38 @@ class ModeChooseExecutor implements IConfigChooserExecutor {
 	//TODO the choice should be done by command line too
 	private IConfigChooserValue displayChoicePopup(List<File> configFileList, String lastChoice) {
 		// TODO add configuration on the default action and timer
-		ChoosePopup<IConfigChooserValue> dialog = new ChoosePopup<IConfigChooserValue>(5, true)
+		ChoosePopup<IConfigChooserValue> dialog = new ChoosePopup<IConfigChooserValue>(DEFAULT_TIME, true)
 
-		List<ConfigFileChoiceValue> fileData = configFileList.collect { File file ->
-			new ConfigFileChoiceValue(file)
-		}
+		List<ConfigFileChoiceValue> fileData = configFileList.collect { File file -> new ConfigFileChoiceValue(file) }
 
-		ConfigFileChoiceValue previousChoice = null
+		ConfigFileChoiceValue previousChoice
 		if(lastChoice){
-			previousChoice = fileData.find{ ConfigFileChoiceValue value ->
-				value.computeStringRepresentation() == lastChoice
-			}
+			previousChoice = fileData.find { ConfigFileChoiceValue value -> value.computeStringRepresentation() == lastChoice }
 		}
 		ChooseData data = new ChooseData((List<IConfigChooserValue>) fileData)
 		if(previousChoice){
-			data.setSelectedValue(previousChoice)
+			data.selectedValue = previousChoice
 		}
 
-		dialog.setData(data)
+		dialog.data = data
 
 		dialog.askUser()
 
-		if (dialog.wasCancelled()) {
-			return null
-		} else {
-			return dialog.getSelectedValue()
-		}
+		return dialog.wasCancelled() ? null : dialog.selectedValue
 	}
 
 	@CompileStatic(TypeCheckingMode.SKIP)
-	private def getConfigDirectory(ConfigObject config) {
+	private getConfigDirectory(ConfigObject config) {
 		return config.grails.plugin.configChooser.directory
 	}
 
 	@CompileStatic(TypeCheckingMode.SKIP)
-	private def getConfigList(ConfigObject config) {
+	private getConfigList(ConfigObject config) {
 		return config.grails.plugin.configChooser.list
 	}
 
 	@CompileStatic(TypeCheckingMode.SKIP)
-	private def getConfigRegex(ConfigObject config) {
+	private getConfigRegex(ConfigObject config) {
 		return config.grails.plugin.configChooser.regex
 	}
 }

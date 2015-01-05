@@ -15,16 +15,11 @@ class ConfigFileChoiceValue implements IConfigChooserValue {
 		this.file = file
 	}
 
-	@Override
 	String computeStringRepresentation() {
 		return file.name
 	}
 
-	@Override
 	ConfigObject retrieveConfigMap() {
-		ConfigSlurper slurper = new ConfigSlurper(Environment.currentEnvironment.name)
-		ConfigObject config = slurper.parse(file.toURI().toURL())
-
-		return config
+		return new ConfigSlurper(Environment.current.name).parse(file.toURI().toURL())
 	}
 }

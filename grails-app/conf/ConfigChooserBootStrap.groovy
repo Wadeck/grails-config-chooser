@@ -4,16 +4,18 @@ class ConfigChooserBootStrap {
 
 	def grailsApplication
 
-	def init = { servletContext ->
-		ConfigChooserHelper.getInstance().destroy()
-//		ConfigChooserHelper.getInstance().execute(grailsApplication)
+	def init = {
+		ConfigChooserHelper.instance.destroy()
+//		ConfigChooserHelper.instance.execute(grailsApplication)
 //		log.info 'Loading ConfigChooser plugin bootstrap'
 //		println "\nLoading ConfigChooser plugin bootstrap"
 //
-//		// 'mergedConfig' provided by plugin-config
-//		def configMode = grailsApplication.mergedConfig.grails.plugin.configChooser.mode
+//		def configChooserConfig = grailsApplication.mergedConfig.grails.plugin.configChooser
 //
-//		ConfigChooserMode mode = null
+//		// 'mergedConfig' provided by plugin-config
+//		def configMode = configChooserConfig.mode
+//
+//		ConfigChooserMode mode
 //		if (configMode instanceof String) {
 //			try {
 //				ConfigChooserMode tryMode = ConfigChooserMode.valueOf(configMode)
@@ -30,13 +32,13 @@ class ConfigChooserBootStrap {
 //		println "desired mode = ${ mode }"
 //
 //		if (mode == ConfigChooserMode.CHOOSE) {
-//			def configDirectory = grailsApplication.mergedConfig.grails.plugin.configChooser.directory
-//			def configRegex = grailsApplication.mergedConfig.grails.plugin.configChooser.regex
-//			def configList = grailsApplication.mergedConfig.grails.plugin.configChooser.list
+//			def configDirectory = configChooserConfig.directory
+//			def configRegex = configChooserConfig.regex
+//			def configList = configChooserConfig.list
 //
 //			println "choosing with params : directory=$configDirectory, list=$configList, regex=$configRegex"
 //
-//			String directoryName = null
+//			String directoryName
 //			if (configDirectory instanceof String) {
 //				directoryName = configDirectory
 //			} else {
@@ -48,13 +50,14 @@ class ConfigChooserBootStrap {
 //			if (!directoryFile.exists()) {
 //				log.error "The path found using 'grails.plugin.configChooser.directory' does not exist, value = ${ configDirectory }. It's is required to use configChooser"
 //				return
-//			} else if (!directoryFile.isDirectory()) {
+//			}
+//			if (!directoryFile.isDirectory()) {
 //				log.error "The path found using 'grails.plugin.configChooser.directory' is not a directory, value = ${ configDirectory }. It's is required to use configChooser"
 //				return
 //			}
 //
 //			// priority : list > regex
-//			List<String> fileNames = null
+//			List<String> fileNames
 //			if (configList instanceof String) {
 //				fileNames = configList.tokenize('|')
 //			} else if (configList instanceof List) {
@@ -65,7 +68,7 @@ class ConfigChooserBootStrap {
 //				}
 //			}
 //
-//			Pattern pattern = null
+//			Pattern pattern
 //			if (!fileNames) {
 //				if (configRegex instanceof Pattern) {
 //					pattern = configRegex
@@ -119,29 +122,26 @@ class ConfigChooserBootStrap {
 //
 //			ChoosePopup<IChooseConfigValue> dialog = new ChoosePopup<IChooseConfigValue>()
 //
-//			List<ChooseFileValue> fileData = configFileList.collect { File file ->
-//				new ChooseFileValue(file)
-//			}
+//			List<ChooseFileValue> fileData = configFileList.collect { new ChooseFileValue(it) }
 //
 //			ChooseData data = new ChooseData(fileData)
-//			dialog.setData(data)
+//			dialog.data = data
 //
 //			dialog.askUser()
 //
 //			if (dialog.wasCancelled()) {
 //				log.warn 'User decided to cancel the launch'
 //				System.exit(0)
-//			} else {
-//				IChooseConfigValue value = dialog.getSelectedValue()
-//				log.info("Selected option: " + value.computeStringRepresentation())
-//
-//				log.warn "test 1 content.version=${ Holders.config.content.version }"
-//
-//				ConfigObject configObject = grailsApplication.config
-//				configObject.merge(value.retrieveConfigMap())
-//
-//				log.warn "test 2 content.version=${ Holders.config.content.version }"
 //			}
+//
+//			IChooseConfigValue value = dialog.selectedValue
+//			log.info("Selected option: ${value.computeStringRepresentation()}")
+//
+//			log.warn "test 1 content.version=${ grailsApplication.config.content.version }"
+//
+//			grailsApplication.config.merge(value.retrieveConfigMap())
+//
+//			log.warn "test 2 content.version=${ grailsApplication.config.content.version }"
 //		}
 //
 //		log.info 'End ConfigChooser plugin bootstrap'

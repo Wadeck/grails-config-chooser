@@ -1,7 +1,11 @@
 package grails.plugin.configChooser.popup;
 
-import javax.swing.*;
-import java.awt.*;
+import java.awt.BorderLayout;
+import java.awt.Dimension;
+import java.awt.FlowLayout;
+import java.awt.KeyEventDispatcher;
+import java.awt.KeyboardFocusManager;
+import java.awt.Window;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ComponentAdapter;
@@ -13,7 +17,21 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.lang.reflect.InvocationTargetException;
 
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JComponent;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextPane;
+import javax.swing.KeyStroke;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+
 public class ChoosePopup<T extends IChoiceValue> extends JDialog {
+	private static final long serialVersionUID = 1;
+
 	private JPanel contentPane;
 	private JComboBox<T> fileChooser;
 	private JTextPane fileContent;
@@ -32,121 +50,111 @@ public class ChoosePopup<T extends IChoiceValue> extends JDialog {
 		super((Window) null);
 
 		if (time != null) {
-			this.secondsBeforeOk = time;
+			secondsBeforeOk = time;
 			if (okDefaultAction) {
-				this.timedButton = new OkTimedButton();
+				timedButton = new OkTimedButton();
 			} else {
-				this.timedButton = new CancelTimedButton();
+				timedButton = new CancelTimedButton();
 			}
 		} else {
-			this.secondsBeforeOk = null;
-			this.timedButton = new NoTimedButton();
+			secondsBeforeOk = null;
+			timedButton = new NoTimedButton();
 		}
 
-		this.initComponents();
-		this.initFrame();
-		this.initLogic();
-		this.initListeners();
+		initComponents();
+		initFrame();
+		initLogic();
+		initListeners();
 	}
 
 	private void initComponents() {
-		this.contentPane = new JPanel();
+		contentPane = new JPanel();
 		contentPane.setLayout(new BorderLayout());
 
 		JPanel northPanel = new JPanel();
 		northPanel.setLayout(new BorderLayout());
 		northPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 		contentPane.add(northPanel, BorderLayout.NORTH);
-		{
-			this.fileChooser = new JComboBox<T>();
-			northPanel.add(fileChooser);
-		}
+		fileChooser = new JComboBox<T>();
+		northPanel.add(fileChooser);
 
 		JPanel centerPanel = new JPanel();
 		centerPanel.setLayout(new BorderLayout());
 		centerPanel.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
 		contentPane.add(centerPanel, BorderLayout.CENTER);
-		{
-			JScrollPane scrollPane = new JScrollPane();
-			centerPanel.add(scrollPane);
-			{
-				fileContent = new JTextPane();
-				fileContent.setEditable(false);
-				scrollPane.setViewportView(fileContent);
-			}
-		}
+		JScrollPane scrollPane = new JScrollPane();
+		centerPanel.add(scrollPane);
+		fileContent = new JTextPane();
+		fileContent.setEditable(false);
+		scrollPane.setViewportView(fileContent);
 
 		JPanel southPanel = new JPanel();
 		southPanel.setLayout(new FlowLayout(FlowLayout.RIGHT, 10, 10));
 		contentPane.add(southPanel, BorderLayout.SOUTH);
-		{
-			this.buttonOK = new JButton("OK");
-			this.buttonCancel = new JButton("Cancel");
+		buttonOK = new JButton("OK");
+		buttonCancel = new JButton("Cancel");
 
-			southPanel.add(buttonOK);
-			southPanel.add(buttonCancel);
+		southPanel.add(buttonOK);
+		southPanel.add(buttonCancel);
 
-			timedButton.init();
-		}
+		timedButton.init();
 	}
 
 	private void initFrame() {
-		this.setTitle("Choose your configuration source");
-		this.setMinimumSize(new Dimension(200, 250));
-		this.setPreferredSize(new Dimension(400, 400));
-		this.setContentPane(contentPane);
-		this.setAlwaysOnTop(true);
-		this.setModalityType(ModalityType.APPLICATION_MODAL);
+		setTitle("Choose your configuration source");
+		setMinimumSize(new Dimension(200, 250));
+		setPreferredSize(new Dimension(400, 400));
+		setContentPane(contentPane);
+		setAlwaysOnTop(true);
+		setModalityType(ModalityType.APPLICATION_MODAL);
 		// call onCancel() when cross is clicked
-		this.setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
+		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 	}
 
 	private void initLogic() {
-		if (secondsBeforeOk != null && secondsBeforeOk > 0) {
-			this.countDownTimer = new Timer(1000, new ActionListener() {
-				@Override
-				public void actionPerformed(ActionEvent e) {
-					secondsBeforeOk--;
-					if (secondsBeforeOk <= 0) {
-						secondsBeforeOk = null;
-						countDownTimer.stop();
-						timedButton.updateTimedButtonText();
-						timedButton.doClick();
-					} else {
-						timedButton.updateTimedButtonText();
-					}
-				}
-			});
-
-			countDownTimer.start();
+		if (secondsBeforeOk == null || secondsBeforeOk <= 0) {
+			return;
 		}
+
+		countDownTimer = new Timer(1000, new ActionListener() {
+			public void actionPerformed(ActionEvent e) {
+				secondsBeforeOk--;
+				if (secondsBeforeOk <= 0) {
+					secondsBeforeOk = null;
+					countDownTimer.stop();
+					timedButton.updateTimedButtonText();
+					timedButton.doClick();
+				} else {
+					timedButton.updateTimedButtonText();
+				}
+			}
+		});
+
+		countDownTimer.start();
 	}
 
 	private void initListeners() {
 		final OnPressedStopCountDownMouseAdapter onPressedStopCountDownMouseAdapter = new OnPressedStopCountDownMouseAdapter();
 
 		// if a single key is pressed, we stop the countdown
-		KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
-		manager.addKeyEventDispatcher(new KeyEventDispatcher() {
-			@Override
+		KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
 			public boolean dispatchKeyEvent(KeyEvent e) {
 				stopCountDown();
 				return false;
 			}
 		});
 
-		this.addWindowListener(new WindowAdapter() {
+		addWindowListener(new WindowAdapter() {
 			@Override
 			public void windowClosing(WindowEvent e) {
 				onCancel();
 			}
 		});
 
-		this.addComponentListener(new OnMoveStopCountDownComponentAdapter());
+		addComponentListener(new OnMoveStopCountDownComponentAdapter());
 
 		// call onCancel() on ESCAPE
 		contentPane.registerKeyboardAction(new ActionListener() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
 				onCancel();
 			}
@@ -156,7 +164,6 @@ public class ChoosePopup<T extends IChoiceValue> extends JDialog {
 		contentPane.addMouseListener(onPressedStopCountDownMouseAdapter);
 
 		fileChooser.addActionListener(new ActionListener() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
 				fileContent.setText(data.getCurrentFileContent());
 				stopCountDown();
@@ -167,7 +174,6 @@ public class ChoosePopup<T extends IChoiceValue> extends JDialog {
 		fileContent.addMouseListener(onPressedStopCountDownMouseAdapter);
 
 		buttonOK.addActionListener(new ActionListener() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
 				onOK();
 			}
@@ -175,7 +181,6 @@ public class ChoosePopup<T extends IChoiceValue> extends JDialog {
 		buttonOK.addMouseListener(onPressedStopCountDownMouseAdapter);
 
 		buttonCancel.addActionListener(new ActionListener() {
-			@Override
 			public void actionPerformed(ActionEvent e) {
 				onCancel();
 			}
@@ -194,12 +199,12 @@ public class ChoosePopup<T extends IChoiceValue> extends JDialog {
 	}
 
 	private void onOK() {
-		this.stopCountDown();
+		stopCountDown();
 		closeFrame();
 	}
 
 	private void onCancel() {
-		this.stopCountDown();
+		stopCountDown();
 		cancelCalled = true;
 		closeFrame();
 	}
@@ -209,8 +214,7 @@ public class ChoosePopup<T extends IChoiceValue> extends JDialog {
 	}
 
 	public T getSelectedValue() {
-		T result = data.getSelectedItem();
-		return result;
+		return data.getSelectedItem();
 	}
 
 	public void setData(IChooseData<T> data) {
@@ -221,24 +225,23 @@ public class ChoosePopup<T extends IChoiceValue> extends JDialog {
 	}
 
 	private void closeFrame() {
-		this.dispose();
+		dispose();
 	}
 
 	public void askUser() {
-		this.pack();
-		this.setLocationRelativeTo(null);
+		pack();
+		setLocationRelativeTo(null);
 		timedButton.setDefaultButton();
 
 		try {
 			SwingUtilities.invokeAndWait(new Runnable() {
-				@Override
 				public void run() {
 					setVisible(true);
 				}
 			});
-		} catch (InterruptedException e) {
+		} catch (InterruptedException ignored) {
 			// do nothing
-		} catch (InvocationTargetException e) {
+		} catch (InvocationTargetException ignored) {
 			// do nothing
 		}
 	}
@@ -295,18 +298,15 @@ public class ChoosePopup<T extends IChoiceValue> extends JDialog {
 	}
 
 	private class OkTimedButton implements TimedButton {
-		@Override
 		public void init() {
 			updateTimedButtonText();
 			buttonCancel.setText("Cancel");
 		}
 
-		@Override
 		public void setDefaultButton() {
 			ChoosePopup.this.getRootPane().setDefaultButton(buttonOK);
 		}
 
-		@Override
 		public void updateTimedButtonText() {
 			String okText;
 			if (secondsBeforeOk == null) {
@@ -317,58 +317,47 @@ public class ChoosePopup<T extends IChoiceValue> extends JDialog {
 			buttonOK.setText(okText);
 		}
 
-		@Override
 		public void doClick() {
 			buttonOK.doClick();
 		}
 	}
 
 	private class CancelTimedButton implements TimedButton {
-		@Override
 		public void init() {
 			updateTimedButtonText();
 			buttonOK.setText("OK");
 		}
 
-		@Override
 		public void setDefaultButton() {
 			ChoosePopup.this.getRootPane().setDefaultButton(buttonCancel);
 		}
 
-		@Override
 		public void updateTimedButtonText() {
-			String okText;
-			if (secondsBeforeOk == null) {
-				okText = "Cancel";
-			} else {
-				okText = "Cancel (" + secondsBeforeOk + ")";
+			String okText = "Cancel";
+			if (secondsBeforeOk != null) {
+				okText += " (" + secondsBeforeOk + ")";
 			}
 			buttonCancel.setText(okText);
 		}
 
-		@Override
 		public void doClick() {
 			buttonCancel.doClick();
 		}
 	}
 
 	private class NoTimedButton implements TimedButton {
-		@Override
 		public void init() {
 			buttonOK.setText("OK");
 			buttonCancel.setText("Cancel");
 		}
 
-		@Override
 		public void setDefaultButton() {
 			ChoosePopup.this.getRootPane().setDefaultButton(buttonOK);
 		}
 
-		@Override
 		public void updateTimedButtonText() {
 		}
 
-		@Override
 		public void doClick() {
 		}
 	}
