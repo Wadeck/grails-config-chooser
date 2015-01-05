@@ -4,7 +4,7 @@ import grails.plugin.configChooser.exception.ConfigChooserInvalidConfigurationEx
 import grails.plugin.configChooser.mode.ConfigChooserMode
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
-import groovy.util.logging.Log4j
+import groovy.util.logging.Slf4j
 import org.codehaus.groovy.grails.commons.GrailsApplication
 
 /**
@@ -12,7 +12,7 @@ import org.codehaus.groovy.grails.commons.GrailsApplication
  * A the first call the instance is created and when the choice is done, the instance is killed
  * @author Wadeck Follonier, wfollonier@proactive-partners.ch
  */
-@Log4j
+@Slf4j
 @CompileStatic
 @Singleton
 class ConfigChooserHelper {

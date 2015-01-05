@@ -8,7 +8,7 @@ import grails.util.GrailsUtil
 import grails.util.Metadata
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
-import groovy.util.logging.Log4j
+import groovy.util.logging.Slf4j
 import groovy.xml.MarkupBuilder
 
 import org.codehaus.groovy.grails.commons.GrailsApplication
@@ -16,7 +16,7 @@ import org.codehaus.groovy.grails.commons.GrailsApplication
 /**
  * @author Wadeck Follonier, wfollonier@proactive-partners.ch
  */
-@Log4j
+@Slf4j
 @CompileStatic
 abstract class AbstractModeChooseSaveSystem implements IModeChooseSaveSystem {
 	protected String envName = Environment.current.name

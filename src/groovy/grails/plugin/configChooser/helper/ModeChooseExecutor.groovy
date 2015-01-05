@@ -9,7 +9,7 @@ import grails.plugin.configChooser.popup.value.ConfigFileChoiceValue
 import groovy.io.FileType
 import groovy.transform.CompileStatic
 import groovy.transform.TypeCheckingMode
-import groovy.util.logging.Log4j
+import groovy.util.logging.Slf4j
 
 import java.util.regex.Pattern
 
@@ -18,7 +18,7 @@ import org.codehaus.groovy.grails.commons.GrailsApplication
 /**
  * @author Wadeck Follonier, wfollonier@proactive-partners.ch
  */
-@Log4j
+@Slf4j
 @CompileStatic
 class ModeChooseExecutor implements IConfigChooserExecutor {
 
